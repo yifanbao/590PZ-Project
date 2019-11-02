@@ -1,2 +1,13 @@
-# 590PZ-Project
-Forks of this are student projects for IS 590PZ
+# Maze Generator
+
+Final project for UIUC IS590PZ 2019 FALL
+
+## Contributors
+
+Yifan Bao (yifanb2)
+
+Mingyan Gong (mingyan5)
+
+## Description
+
+## Usage
