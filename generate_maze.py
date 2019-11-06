@@ -3,6 +3,10 @@ Generate Maze
 
 """
 import random
+from copy import deepcopy
+import numpy as np
+import matplotlib.pyplot as pyplot
+from matplotlib.colors import ListedColormap, LinearSegmentedColormap
 
 
 class Maze:
@@ -15,73 +19,123 @@ class Maze:
 
     def __init__(self, mode='easy'):
         if mode == 'easy':
-            self.M = 21
+            self.M = 31
             self.N = 41
-            self.complexity = 2
+            self.complexity = 0.5
 
-        self.board = [[Maze.__marks['wall'] for _ in range(self.N)] for _ in range(self.M)]
+        self.solution_length = int(self.complexity * self.M * self.N / 8)
         self.start_point = random.choice([
             (0, random.randint(0, (self.N - 2) // 2) * 2 + 1),
             (self.M - 1, random.randint(0, (self.N - 2) // 2) * 2 + 1),
             (random.randint(0, (self.M - 2) // 2) * 2 + 1, 0),
             (random.randint(0, (self.M - 2) // 2) * 2 + 1, self.N - 1)
         ])
-        self.end_point = self.generate_path(self.start_point, True)
+
+        self.board = [[Maze.__marks['wall'] for _ in range(self.N)] for _ in range(self.M)]
+        self.solution = []
+        self.end_point = self.generate_path(self.start_point, is_solution=True)
+
+        for i in range(int(self.complexity * len(self.solution) / 4)):
+            m, n = random.choice(self.solution)
+            end = self.generate_path((m, n))
+            while end == (-1, -1):
+                m, n = random.choice(self.solution)
+                end = self.generate_path((m, n))
+
         for m in range(1, self.M - 1, 2):
             for n in range(1, self.N - 1, 2):
                 if self.board[m][n] == Maze.__marks['wall']:
-                    self.generate_path((m, n))
+                    self.generate_path((m, n), avoid_visited=False, min_length=1)
 
-    def generate_path(self, start_point: tuple, is_solution=False) -> tuple:
+    def generate_path(self, start_point: tuple, is_solution=False, avoid_visited=True, max_length=None, min_length=None) -> tuple:
+        initial_board = deepcopy(self.board)
+        initial_solution = self.solution.copy()
         marks = Maze.__marks
         if is_solution:
-            max_length = int(self.complexity * (self.M + self.N))
+            max_length = max_length or self.solution_length
+            min_length = min_length or int(max_length * 0.75)
             target_mark = marks['solution']
-            forbidden_mark = {target_mark}
+            forbidden_depth = 3
         else:
-            max_length = int(self.complexity * (self.M + self.N) / 5)
+            max_length = max_length or int(self.solution_length * self.complexity / 3)
+            min_length = min_length or int(max_length * 0.5)
             target_mark = marks['aisle']
-            forbidden_mark = set()
+            forbidden_depth = 1
+        forbidden_mark = set()
+        if avoid_visited:
+            for item in marks:
+                if item != 'wall':
+                    forbidden_mark.add(marks[item])
 
         m, n = start_point
-        curt_length = 1
+        curt_length = 0
 
-        def check_merging(_m, _n):
-            if self.board[_m][_n] == marks['wall']:
-                self.board[_m][_n] = target_mark
+        if start_point == self.start_point:
+            self.board[m][n] = target_mark
+            if m == 0:
+                m += 1
+            elif m == self.M - 1:
+                m -= 1
+            elif n == 0:
+                n += 1
+            else:
+                n -= 1
+
+        while curt_length < max_length:
+            if self.board[m][n] == marks['wall']:
+                self.board[m][n] = target_mark
             else:
                 for item in marks:
                     if item != 'wall':
                         forbidden_mark.add(marks[item])
+            curt_length += 1
+            if is_solution:
+                self.solution.append((m, n))
 
-        while curt_length < max_length:
-            check_merging(m, n)
-            neighbors = self.get_neighbors_coordinates(m, n, forbidden_mark)
+            neighbors = self.get_neighbors_coordinates(m, n, forbidden_mark, forbidden_depth)
             if not len(neighbors):
                 break
             m_, n_ = random.choice(neighbors)
-            m_in = (m + m_) // 2
-            n_in = (n + n_) // 2
-            check_merging(m_in, n_in)
-            curt_length += 2
+            self.board[(m + m_) // 2][(n + n_) // 2] = target_mark
             m, n = m_, n_
+        if self.board[m][n] == marks['wall']:
+            self.board[m][n] = target_mark
+
+        if curt_length < min_length:
+            self.board = initial_board
+            self.solution = initial_solution
+            if is_solution:
+                m, n = self.generate_path(start_point, is_solution, avoid_visited, max_length, min_length)
+            else:
+                return -1, -1
 
         return m, n
 
-    def get_neighbors_coordinates(self, m: int, n: int, forbidden_mark=None) -> list:
+    def get_neighbors_coordinates(self, m: int, n: int, forbidden_mark=None, forbidden_depth=1) -> list:
         neighbors = []
         if forbidden_mark is None:
             forbidden_mark = set()
         for m_, n_ in [(m - 2, n), (m + 2, n), (m, n - 2), (m, n + 2)]:
-            if 0 < m_ < self.M \
-                    and 0 < n_ < self.N \
-                    and self.board[m_][n_] not in forbidden_mark \
-                    and self.board[(m + m_) // 2][(n + n_) // 2] not in forbidden_mark:
-                neighbors.append((m_, n_))
+            if not 0 < m_ < self.M or not 0 < n_ < self.N:
+                continue
+            if forbidden_depth > 0 and self.board[m_][n_] in forbidden_mark:
+                continue
+            if forbidden_depth > 1 and not len(self.get_neighbors_coordinates(m_, n_, forbidden_mark, forbidden_depth - 1)):
+                continue
+            neighbors.append((m_, n_))
         return neighbors
 
     def print(self, show_solution=False):
-        pass
+        figure = pyplot.figure(figsize=(10, 5))
+        viridis = pyplot.cm.get_cmap('viridis', 256)
+        new_colors = viridis(np.linspace(0, 1, 256))
+        pink = np.array([248 / 256, 24 / 256, 148 / 256, 1])
+        new_colors[:25, :] = pink
+        new_cmp = ListedColormap(new_colors)
+        # pyplot.imshow(self.board, cmap=new_cmp, interpolation='nearest')
+        pyplot.imshow(self.board, cmap=pyplot.cm.get_cmap('viridis_r', 256), interpolation='nearest')
+        pyplot.xticks([]), pyplot.yticks([])
+        figure.show()
 
 
 if __name__ == '__main__':
