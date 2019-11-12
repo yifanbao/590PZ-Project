@@ -13,17 +13,40 @@ class Maze:
 
     __marks = {
         'aisle': 0,
-        'solution': 0.5,
+        'solution': 0.4,
+        'portal': 0.6,
+        'portal_solution': 0.65,
+        'start': 0.8,
+        'end': 0.9,
         'wall': 1
     }
 
     def __init__(self, mode='easy'):
+        # TODO: Add default settings for different modes
+        # set up board size and difficulty
+        num_portals = 0
         if mode == 'easy':
             self.M = 31
             self.N = 41
             self.complexity = 0.5
+            num_portals = 1
 
+        # initialize board
+        self.board = [[Maze.__marks['wall'] for _ in range(self.N)] for _ in range(self.M)]
         self.solution_length = int(self.complexity * self.M * self.N / 8)
+        self.solution = []
+        self.start_point = None
+        self.end_point = None
+
+        # TODO: Initial setup for doors & keys
+        self.portals = {}
+        self.doors_keys = {}
+        sequence = ['portal'] * num_portals + ['end']
+
+        self.generate_board(sequence)
+
+    def generate_board(self, sequence: list):
+        # randomly choose a start point on the outer border
         self.start_point = random.choice([
             (0, random.randint(0, (self.N - 2) // 2) * 2 + 1),
             (self.M - 1, random.randint(0, (self.N - 2) // 2) * 2 + 1),
@@ -31,10 +54,44 @@ class Maze:
             (random.randint(0, (self.M - 2) // 2) * 2 + 1, self.N - 1)
         ])
 
-        self.board = [[Maze.__marks['wall'] for _ in range(self.N)] for _ in range(self.M)]
-        self.solution = []
-        self.end_point = self.generate_path(self.start_point, is_solution=True)
+        marks = Maze.__marks
 
+        # generate solution according to the sequence
+        start_point = self.start_point
+        for i, item in enumerate(sequence):
+            max_length = (self.solution_length - len(self.solution)) / (len(sequence) - i)
+            end_point = self.generate_path(start_point, is_solution=True, max_length=max_length)
+            # add a pair of portals
+            if item == 'portal':
+                self.board[end_point[0]][end_point[1]] = marks['portal']
+                start_point = (
+                    random.randint(0, (self.M - 2) // 2) * 2 + 1,
+                    random.randint(0, (self.N - 2) // 2) * 2 + 1
+                )
+                while self.board[start_point[0]][start_point[1]] != marks['wall']:
+                    start_point = (
+                        random.randint(0, (self.M - 2) // 2) * 2 + 1,
+                        random.randint(0, (self.N - 2) // 2) * 2 + 1
+                    )
+                self.portals[end_point] = start_point
+                self.portals[start_point] = end_point
+            # TODO: Add key & door
+            elif item == 'key':
+                pass
+            elif item == 'door':
+                pass
+            # add an end point
+            elif item == 'end':
+                self.end_point = end_point
+                break
+
+        # mark special items on the board
+        self.board[self.start_point[0]][self.start_point[1]] = marks['start']
+        self.board[self.end_point[0]][self.end_point[1]] = marks['end']
+        for m, n in self.portals:
+            self.board[m][n] = marks['portal']
+
+        # generate branches from the solution path
         for i in range(int(self.complexity * len(self.solution) / 4)):
             m, n = random.choice(self.solution)
             end = self.generate_path((m, n))
@@ -42,9 +99,10 @@ class Maze:
                 m, n = random.choice(self.solution)
                 end = self.generate_path((m, n))
 
+        # fill the board
         for m in range(1, self.M - 1, 2):
             for n in range(1, self.N - 1, 2):
-                if self.board[m][n] == Maze.__marks['wall']:
+                if self.board[m][n] == marks['wall']:
                     self.generate_path((m, n), avoid_visited=False, min_length=1)
 
     def generate_path(self, start_point: tuple, is_solution=False, avoid_visited=True, max_length=None, min_length=None) -> tuple:
