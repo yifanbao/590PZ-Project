@@ -1,0 +1,44 @@
+.container {
+    display: flex;
+    align-items: center;
+}
+
+.maze-board {
+
+}
+
+.maze-cell {
+    display: inline-block;
+    height: 10px;
+    width: 10px;
+}
+
+.aisle {
+    background: whitesmoke;
+}
+
+.wall {
+    background: darkslategray;
+}
+
+.solution {
+    background: lightgreen;
+}
+
+.start {
+    background: chocolate;
+}
+
+.end {
+    background: chocolate;
+}
+
+.portal {
+    background: mediumslateblue;
+}
+
+.portal-solution {
+    background: blueviolet;
+}
+
+

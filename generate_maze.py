@@ -45,6 +45,10 @@ class Maze:
 
         self.generate_board(sequence)
 
+    @staticmethod
+    def get_marks():
+        return Maze.__marks
+
     def generate_board(self, sequence: list):
         # randomly choose a start point on the outer border
         self.start_point = random.choice([
