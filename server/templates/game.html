@@ -2,15 +2,30 @@
 <html lang="en">
 <head>
     <title>MAZE</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
 <div class="container">
-    <h1>Start Game!</h1>
+    <h2>Maze</h2>
+    <div class="button-container">
+        <a class="waves-effect waves-light btn">New Game</a>
+        <a class="waves-effect waves-light btn">Restart</a>
+        <a class="waves-effect waves-light btn">Show Solution</a>
+    </div>
+    <div class="legend-container">
+        <div class="legend-item">
+            <div class="maze-cell portal legend-icon"></div>
+             Portal
+        </div>
+        <div class="legend-item">
+            <div class="maze-cell end legend-icon"></div>
+             Destination
+        </div>
+    </div>
     {% if maze %}
         <div class="maze-board">
         {% for row in maze.board %}
-            <div class="maze-row">
             {% for cell in row %}
                 {% if cell == marks['aisle'] %}
                     <div class="maze-cell aisle"></div>
@@ -28,7 +43,6 @@
                     <div class="maze-cell portal-solution"></div>
                 {% endif %}
             {% endfor %}
-            </div>
         {% endfor %}
         </div>
     {% endif %}

@@ -1,14 +1,39 @@
+body {
+    background: whitesmoke;
+}
+
 .container {
     display: flex;
+    flex-direction: column;
     align-items: center;
 }
 
-.maze-board {
+.button-container {
+    margin: 10px;
+}
 
+.legend-container {
+    display: flex;
+    align-items: center;
+    margin: 10px;
+}
+
+.legend-item {
+    margin: 0 5px;
+}
+
+.legend-icon {
+    display: inline-block;
+    margin: 0 2px;
+}
+
+.maze-board {
+    display: grid;
+    grid-gap: 0;
+    grid-template-columns: repeat(41,1fr);
 }
 
 .maze-cell {
-    display: inline-block;
     height: 10px;
     width: 10px;
 }
@@ -35,10 +60,12 @@
 
 .portal {
     background: mediumslateblue;
+    border-radius: 50%;
 }
 
 .portal-solution {
     background: blueviolet;
+    border-radius: 50%;
 }
 
 
