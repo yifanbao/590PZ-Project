@@ -107,12 +107,16 @@ class Maze:
         for m in range(1, self.M - 1, 2):
             for n in range(1, self.N - 1, 2):
                 if self.board[m][n] == marks['wall']:
-                    self.generate_path((m, n), avoid_visited=False, min_length=1)
+                    self.generate_path((m, n), avoid_visited=False, max_length=self.solution_length, min_length=1)
 
     def generate_path(self, start_point: tuple, is_solution=False, avoid_visited=True, max_length=None, min_length=None) -> tuple:
+        marks = Maze.__marks
+
+        # reset if do not meet min length requirement
         initial_board = deepcopy(self.board)
         initial_solution = self.solution.copy()
-        marks = Maze.__marks
+
+        # set up default parameters
         if is_solution:
             max_length = max_length or self.solution_length
             min_length = min_length or int(max_length * 0.75)
@@ -131,7 +135,9 @@ class Maze:
 
         m, n = start_point
         curt_length = 0
+        curt_path = set()
 
+        # move one cell first if start from a border
         if start_point == self.start_point:
             self.board[m][n] = target_mark
             if m == 0:
@@ -143,48 +149,71 @@ class Maze:
             else:
                 n -= 1
 
+        # generate path
+        # move one step (two cells) each time, until meeting max length or no allowed movement
         while curt_length < max_length:
+            # mark current cell
             if self.board[m][n] == marks['wall']:
                 self.board[m][n] = target_mark
+                curt_length += 1
+                curt_path.add((m, n))
+            if is_solution:
+                self.solution.append((m, n))
+
+            # get neighbors
+            neighbors = self.get_neighbors_coordinates(m, n, curt_path, forbidden_mark, forbidden_depth)
+            if not len(neighbors):
+                break
+
+            # choose a neighbor and break the wall in-between
+            m_, n_ = random.choice(neighbors)
+            self.board[(m + m_) // 2][(n + n_) // 2] = target_mark
+
+            # if the neighbor is a wall, replicate the above operations for the neighbor
+            if self.board[m_][n_] == marks['wall']:
+                m, n = m_, n_
+            # otherwise, update forbidden marks and find another neighbor for the current cell
             else:
                 for item in marks:
                     if item != 'wall':
                         forbidden_mark.add(marks[item])
-            curt_length += 1
-            if is_solution:
-                self.solution.append((m, n))
-
-            neighbors = self.get_neighbors_coordinates(m, n, forbidden_mark, forbidden_depth)
-            if not len(neighbors):
-                break
-            m_, n_ = random.choice(neighbors)
-            self.board[(m + m_) // 2][(n + n_) // 2] = target_mark
-            m, n = m_, n_
         if self.board[m][n] == marks['wall']:
             self.board[m][n] = target_mark
 
+        # reset if do not meet min length requirement
         if curt_length < min_length:
             self.board = initial_board
             self.solution = initial_solution
             if is_solution:
-                m, n = self.generate_path(start_point, is_solution, avoid_visited, max_length, min_length)
+                m, n = self.generate_path(start_point, is_solution, avoid_visited, max_length, min_length - 1)
             else:
                 return -1, -1
 
+        # return the coordinate of the last cell in current path
         return m, n
 
-    def get_neighbors_coordinates(self, m: int, n: int, forbidden_mark=None, forbidden_depth=1) -> list:
-        neighbors = []
+    def get_neighbors_coordinates(self, m: int, n: int, forbidden_cell=None, forbidden_mark=None, forbidden_depth=1) -> list:
+        # set up default parameters
+        if forbidden_cell is None:
+            forbidden_cell = set()
         if forbidden_mark is None:
             forbidden_mark = set()
+
+        # find neighbors with a step of 2
+        neighbors = []
         for m_, n_ in [(m - 2, n), (m + 2, n), (m, n - 2), (m, n + 2)]:
+            # skip invalid neighbors
             if not 0 < m_ < self.M or not 0 < n_ < self.N:
+                continue
+            if (m_, n_) in forbidden_cell:
                 continue
             if forbidden_depth > 0 and self.board[m_][n_] in forbidden_mark:
                 continue
-            if forbidden_depth > 1 and not len(self.get_neighbors_coordinates(m_, n_, forbidden_mark, forbidden_depth - 1)):
+            if forbidden_depth > 1 and not len(self.get_neighbors_coordinates(m_, n_, forbidden_cell, forbidden_mark, forbidden_depth - 1)):
                 continue
+
             neighbors.append((m_, n_))
+
         return neighbors
 
     def print(self, show_solution=False):
