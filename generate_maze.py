@@ -21,15 +21,30 @@ class Maze:
         'wall': 1
     }
 
-    def __init__(self, mode='easy'):
-        # TODO: Add default settings for different modes
+    def __init__(self, mode='easy', num_rows=31, num_columns=41, complexity=0.5, num_portals=0):
         # set up board size and difficulty
-        num_portals = 0
+        self.M = num_rows
+        self.N = num_columns
+        self.complexity = complexity
+        self.num_portals = num_portals
         if mode == 'easy':
             self.M = 31
             self.N = 41
             self.complexity = 0.5
             num_portals = 1
+        elif mode == 'median':
+            self.M = 41
+            self.N = 61
+            self.complexity = 0.65
+            num_portals = 1
+        elif mode == 'hard':
+            self.M = 61
+            self.N = 81
+            self.complexity = 0.8
+            num_portals = 2
+        else:
+            # TODO: input check for customized parameters
+            pass
 
         # initialize board
         self.board = [[Maze.__marks['wall'] for _ in range(self.N)] for _ in range(self.M)]
@@ -96,12 +111,15 @@ class Maze:
             self.board[m][n] = marks['portal']
 
         # generate branches from the solution path
-        for i in range(int(self.complexity * len(self.solution) / 4)):
-            m, n = random.choice(self.solution)
+        num_branches = int(len(self.solution) * self.complexity / 4)
+        count_branches = 0
+        branch_start_points = self.solution.copy()
+        random.shuffle(branch_start_points)
+        while count_branches < num_branches and len(branch_start_points):
+            m, n = branch_start_points.pop()
             end = self.generate_path((m, n))
-            while end == (-1, -1):
-                m, n = random.choice(self.solution)
-                end = self.generate_path((m, n))
+            if end != (-1, -1):
+                count_branches += 1
 
         # fill the board
         for m in range(1, self.M - 1, 2):
@@ -124,7 +142,7 @@ class Maze:
             forbidden_depth = 3
         else:
             max_length = max_length or int(self.solution_length * self.complexity / 3)
-            min_length = min_length or int(max_length * 0.5)
+            min_length = min_length or int(max_length * 0.4)
             target_mark = marks['aisle']
             forbidden_depth = 1
         forbidden_mark = set()
