@@ -6,11 +6,12 @@ from generate_maze import Maze
 app = Flask(__name__)
 
 
-@app.route('/')
-def init():
+@app.route('/<string:mode>')
+def init(mode):
+    mode = mode or 'easy'
     marks = Maze.get_marks()
-    maze = Maze()
-    return render_template('game.html', maze=maze, marks=marks)
+    maze = Maze(mode=mode)
+    return render_template('game.html', maze=maze, marks=marks, columns=str(len(maze.board[0])))
 
 
 if __name__ == '__main__':

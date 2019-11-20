@@ -9,22 +9,13 @@
 <div class="container">
     <h2>Maze</h2>
     <div class="button-container">
-        <a class="waves-effect waves-light btn">New Game</a>
-        <a class="waves-effect waves-light btn">Restart</a>
-        <a class="waves-effect waves-light btn">Show Solution</a>
-    </div>
-    <div class="legend-container">
-        <div class="legend-item">
-            <div class="maze-cell portal legend-icon"></div>
-             Portal
-        </div>
-        <div class="legend-item">
-            <div class="maze-cell end legend-icon"></div>
-             Destination
-        </div>
+        <h6 style="display: inline-block">New Game:</h6>
+        <a class="waves-effect waves-light btn z-depth-0 btn-small" href="/easy">Easy</a>
+        <a class="waves-effect waves-light btn z-depth-0 btn-small" href="/median">Median</a>
+        <a class="waves-effect waves-light btn z-depth-0 btn-small" href="/hard">Hard</a>
     </div>
     {% if maze %}
-        <div class="maze-board">
+        <div class="maze-board" style="{{ 'grid-template-columns: repeat(' + columns + ', 1fr);' }}">
         {% for row in maze.board %}
             {% for cell in row %}
                 {% if cell == marks['aisle'] %}
@@ -46,6 +37,54 @@
         {% endfor %}
         </div>
     {% endif %}
+    <div class="legend-container">
+        <div class="legend-item">
+            <div class="maze-cell start legend-icon"></div>
+             Starting
+        </div>
+        <div class="legend-item">
+            <div class="maze-cell end legend-icon"></div>
+             Destination
+        </div>
+        <div class="legend-item">
+            <div class="maze-cell portal legend-icon"></div>
+             Portal
+        </div>
+    </div>
+    <div class="button-container">
+        <a class="waves-effect waves-light btn z-depth-0">Restart</a>
+        <a class="waves-effect waves-light btn z-depth-0" id="solution-btn">Show Solution</a>
+    </div>
 </div>
 </body>
+
+<script>
+    const solutionBtn = document.getElementById('solution-btn');
+    const switchSolution = function(e) {
+        const solutionAisles = document.querySelectorAll('.solution');
+        const solutionPortals = document.querySelectorAll('.portal-solution');
+        if (e.target.innerText === 'Show Solution'.toUpperCase()) {
+            e.target.innerText = 'Hide Solution';
+            solutionAisles.forEach(aisle => {
+               aisle.style.background = 'lightgreen';
+            });
+            solutionPortals.forEach(portal => {
+                portal.style.background = 'blueviolet';
+            })
+        } else {
+            e.target.innerText = 'Show Solution';
+            const aisleColor = document.getElementsByClassName('aisle')[0].style.background;
+            const portalColor = document.getElementsByClassName('portal')[0].style.background;
+            solutionAisles.forEach(aisle => {
+               aisle.style.background = aisleColor;
+            });
+            solutionPortals.forEach(portal => {
+                portal.style.background = portalColor;
+            })
+        }
+    };
+
+    solutionBtn.addEventListener('click', switchSolution);
+</script>
+
 </html>

@@ -1,5 +1,6 @@
 body {
     background: whitesmoke;
+    color: darkslategray;
 }
 
 .container {
@@ -15,7 +16,6 @@ body {
 .legend-container {
     display: flex;
     align-items: center;
-    margin: 10px;
 }
 
 .legend-item {
@@ -30,7 +30,8 @@ body {
 .maze-board {
     display: grid;
     grid-gap: 0;
-    grid-template-columns: repeat(41,1fr);
+    /*grid-template-columns: repeat(41,1fr);*/
+    margin: 10px;
 }
 
 .maze-cell {
@@ -47,11 +48,12 @@ body {
 }
 
 .solution {
-    background: lightgreen;
+    background: whitesmoke;
+    /*background: lightgreen;*/
 }
 
 .start {
-    background: chocolate;
+    background: forestgreen;
 }
 
 .end {
@@ -60,12 +62,13 @@ body {
 
 .portal {
     background: mediumslateblue;
-    border-radius: 50%;
+    /*border-radius: 50%;*/
 }
 
 .portal-solution {
-    background: blueviolet;
-    border-radius: 50%;
+    background: mediumslateblue;
+    /*background: blueviolet;*/
+    /*border-radius: 50%;*/
 }
 
 
