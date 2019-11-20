@@ -82,7 +82,7 @@ class Maze:
             end_point = self.generate_path(start_point, is_solution=True, max_length=max_length)
             # add a pair of portals
             if item == 'portal':
-                self.board[end_point[0]][end_point[1]] = marks['portal']
+                self.board[end_point[0]][end_point[1]] = marks['portal_solution']
                 start_point = (
                     random.randint(0, (self.M - 2) // 2) * 2 + 1,
                     random.randint(0, (self.N - 2) // 2) * 2 + 1
@@ -108,7 +108,7 @@ class Maze:
         self.board[self.start_point[0]][self.start_point[1]] = marks['start']
         self.board[self.end_point[0]][self.end_point[1]] = marks['end']
         for m, n in self.portals:
-            self.board[m][n] = marks['portal']
+            self.board[m][n] = marks['portal_solution']
 
         # generate branches from the solution path
         num_branches = int(len(self.solution) * self.complexity / 4)
