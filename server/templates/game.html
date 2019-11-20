@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>MAZE</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="container">
+    <h2>Maze</h2>
+    <div class="button-container">
+        <a class="waves-effect waves-light btn">New Game</a>
+        <a class="waves-effect waves-light btn">Restart</a>
+        <a class="waves-effect waves-light btn">Show Solution</a>
+    </div>
+    <div class="legend-container">
+        <div class="legend-item">
+            <div class="maze-cell portal legend-icon"></div>
+             Portal
+        </div>
+        <div class="legend-item">
+            <div class="maze-cell end legend-icon"></div>
+             Destination
+        </div>
+    </div>
+    {% if maze %}
+        <div class="maze-board">
+        {% for row in maze.board %}
+            {% for cell in row %}
+                {% if cell == marks['aisle'] %}
+                    <div class="maze-cell aisle"></div>
+                {% elif cell == marks['solution'] %}
+                    <div class="maze-cell solution"></div>
+                {% elif cell == marks['wall'] %}
+                    <div class="maze-cell wall"></div>
+                {% elif cell == marks['start'] %}
+                    <div class="maze-cell start"></div>
+                {% elif cell == marks['end'] %}
+                    <div class="maze-cell end"></div>
+                {% elif cell == marks['portal'] %}
+                    <div class="maze-cell portal"></div>
+                {% elif cell == marks['portal_solution'] %}
+                    <div class="maze-cell portal-solution"></div>
+                {% endif %}
+            {% endfor %}
+        {% endfor %}
+        </div>
+    {% endif %}
+</div>
+</body>
+</html>
