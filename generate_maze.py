@@ -18,15 +18,18 @@ class Maze:
         'portal_solution': 0.65,
         'start': 0.8,
         'end': 0.9,
-        'wall': 1
+        'wall': 1,
+        'key': 0.4,
+        'door': 0.6
     }
 
-    def __init__(self, mode='easy', num_rows=31, num_columns=41, complexity=0.5, num_portals=0):
+    def __init__(self, mode='easy', num_rows=31, num_columns=41, complexity=0.5, num_portals=0, num_doors = 1):
         # set up board size and difficulty
         self.M = num_rows
         self.N = num_columns
         self.complexity = complexity
         self.num_portals = num_portals
+        self.num_doors = num_doors
         if mode == 'easy':
             self.M = 31
             self.N = 41
@@ -43,8 +46,9 @@ class Maze:
             self.complexity = 0.8
             num_portals = 2
         else:
-            # TODO: input check for customized parameters
-            pass
+            if num_rows % 2 == 0 or num_columns % 2 == 0 or complexity < 0 or complexity > 1:
+                raise ValueError("Oops, the number of rows and columns should be odd "
+                                 "and complexity should be between 0 and 1")
 
         # initialize board
         self.board = [[Maze.__marks['wall'] for _ in range(self.N)] for _ in range(self.M)]
@@ -53,10 +57,12 @@ class Maze:
         self.start_point = None
         self.end_point = None
 
-        # TODO: Initial setup for doors & keys
         self.portals = {}
         self.doors_keys = {}
-        sequence = ['portal'] * num_portals + ['end']
+        hard_coded_sequence = {1: ['portal'] * num_portals + ['key'] * num_doors + ['door'] * num_doors + ['end'],
+                               2: ['key'] * num_doors + ['door'] * num_doors + ['portal'] * num_portals + ['end'],
+                               3: ['key'] * num_doors + ['portal'] * num_portals + ['door'] * num_doors + ['end']}
+        sequence = hard_coded_sequence[random.randint(1, 3)]
 
         self.generate_board(sequence)
 
@@ -94,11 +100,15 @@ class Maze:
                     )
                 self.portals[end_point] = start_point
                 self.portals[start_point] = end_point
-            # TODO: Add key & door
             elif item == 'key':
-                pass
+                self.board[end_point[0]][end_point[1]] = marks['key']
+                start_point = end_point
+                key_point = start_point
             elif item == 'door':
-                pass
+                self.board[end_point[0]][end_point[1]] = marks['door']
+                start_point = end_point
+                self.doors_keys[key_point] = start_point
+                self.doors_keys[start_point] = key_point
             # add an end point
             elif item == 'end':
                 self.end_point = end_point
