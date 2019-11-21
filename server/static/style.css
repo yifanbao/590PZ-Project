@@ -52,6 +52,11 @@ body {
     /*background: lightgreen;*/
 }
 
+.player {
+    background: goldenrod;
+    border-radius: 50%;
+}
+
 .start {
     background: forestgreen;
 }
@@ -62,13 +67,23 @@ body {
 
 .portal {
     background: mediumslateblue;
-    /*border-radius: 50%;*/
 }
 
 .portal-solution {
     background: mediumslateblue;
     /*background: blueviolet;*/
-    /*border-radius: 50%;*/
 }
 
+.message {
+    display: none;
+    margin: 10px;
+    text-align: center;
+}
 
+.success-message {
+    padding: 2px 10px;
+    border-radius: 2px;
+    font-size: 20px;
+    background: chocolate;
+    color: whitesmoke;
+}

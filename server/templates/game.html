@@ -39,6 +39,10 @@
     {% endif %}
     <div class="legend-container">
         <div class="legend-item">
+            <div class="maze-cell player legend-icon"></div>
+             Player
+        </div>
+        <div class="legend-item">
             <div class="maze-cell start legend-icon"></div>
              Starting
         </div>
@@ -51,27 +55,100 @@
              Portal
         </div>
     </div>
+    <div class="message">
+        <div class="success-message">
+            Congrats! You passed the game in
+            <span id="step-counter"></span>
+            steps :)
+        </div>
+        You can either replay this game or start a new game.
+    </div>
     <div class="button-container">
-        <a class="waves-effect waves-light btn z-depth-0">Restart</a>
+        <a class="waves-effect waves-light btn z-depth-0" id="restart-btn">Restart</a>
         <a class="waves-effect waves-light btn z-depth-0" id="solution-btn">Show Solution</a>
     </div>
 </div>
 </body>
 
 <script>
+    const columns = parseInt({{ columns }});
+    const portals = {{ portals }};
+    let steps, curtPosition, prevPositionStyle;
+
+    const cells = document.getElementsByClassName('maze-cell');
+    const message = document.getElementsByClassName('message')[0];
+    const stepCounter = document.getElementById('step-counter');
     const solutionBtn = document.getElementById('solution-btn');
+    const restartBtn = document.getElementById('restart-btn');
+
+    const initializePlayer = function() {
+        document.addEventListener('keydown', movePlayer);
+        message.style.display = 'none';
+        if (prevPositionStyle) {
+            cells[curtPosition].style = prevPositionStyle;
+        }
+        curtPosition = {{ position }};
+        steps = 0;
+        setPlayer();
+    };
+
+    const setPlayer = function() {
+        prevPositionStyle = {...cells[curtPosition].style};
+        cells[curtPosition].style.background = 'goldenrod';
+        cells[curtPosition].style.borderRadius = '50%';
+        stepCounter.innerText = steps;
+    };
+
+    const movePlayer = function(e) {
+        let newPosition;
+        switch (e.key) {
+            case 'ArrowUp':
+                newPosition = curtPosition - columns;
+                break;
+            case 'ArrowDown':
+                newPosition = curtPosition + columns;
+                break;
+            case 'ArrowLeft':
+                newPosition = curtPosition - 1;
+                break;
+            case 'ArrowRight':
+                newPosition = curtPosition + 1;
+                break;
+            default:
+                return;
+        }
+        if (cells[newPosition].classList.contains('wall')) {
+            return;
+        }
+        if (portals[newPosition] !== undefined) {
+            newPosition = portals[newPosition];
+        }
+        cells[curtPosition].style = prevPositionStyle;
+        prevPositionStyle = {...cells[newPosition].style};
+        curtPosition = newPosition;
+        steps++;
+        setPlayer();
+
+        if (cells[curtPosition].classList.contains('end')) {
+            document.removeEventListener('keydown', movePlayer);
+            message.style.display = 'block';
+        }
+    };
+
     const switchSolution = function(e) {
         const solutionAisles = document.querySelectorAll('.solution');
         const solutionPortals = document.querySelectorAll('.portal-solution');
         if (e.target.innerText === 'Show Solution'.toUpperCase()) {
+            document.removeEventListener('keydown', movePlayer);
             e.target.innerText = 'Hide Solution';
             solutionAisles.forEach(aisle => {
                aisle.style.background = 'lightgreen';
             });
             solutionPortals.forEach(portal => {
                 portal.style.background = 'blueviolet';
-            })
+            });
         } else {
+            document.addEventListener('keydown', movePlayer);
             e.target.innerText = 'Show Solution';
             const aisleColor = document.getElementsByClassName('aisle')[0].style.background;
             const portalColor = document.getElementsByClassName('portal')[0].style.background;
@@ -80,10 +157,14 @@
             });
             solutionPortals.forEach(portal => {
                 portal.style.background = portalColor;
-            })
+            });
         }
+        setPlayer();
     };
 
+    initializePlayer();
+
+    restartBtn.addEventListener('click', initializePlayer);
     solutionBtn.addEventListener('click', switchSolution);
 </script>
 
