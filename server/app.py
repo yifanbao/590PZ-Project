@@ -24,8 +24,9 @@ def init(mode):
     parsed_portals = {}
     for key in portals.keys():
         parsed_portals[parse_position(*key)] = parse_position(*portals[key])
+    require_key = len(maze.keys)
 
-    return render_template('game.html', marks=marks, maze=maze, columns=str(columns), position=position, portals=parsed_portals)
+    return render_template('game.html', marks=marks, maze=maze, columns=str(columns), position=position, portals=parsed_portals, require_key=require_key)
 
 
 if __name__ == '__main__':
