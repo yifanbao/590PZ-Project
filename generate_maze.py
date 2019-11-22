@@ -23,7 +23,7 @@ class Maze:
         'door': 0.6
     }
 
-    def __init__(self, mode='easy', num_rows=31, num_columns=41, complexity=0.5, num_portals=0, num_doors = 1):
+    def __init__(self, mode='easy', num_rows=31, num_columns=41, complexity=0.5, num_portals=0, num_doors=1):
         # set up board size and difficulty
         self.M = num_rows
         self.N = num_columns
@@ -46,9 +46,16 @@ class Maze:
             self.complexity = 0.8
             num_portals = 2
         else:
-            if num_rows % 2 == 0 or num_columns % 2 == 0 or complexity < 0 or complexity > 1:
-                raise ValueError("Oops, the number of rows and columns should be odd "
-                                 "and complexity should be between 0 and 1")
+            if type(num_rows) != int or num_rows % 2 == 0 or num_rows <= 0:
+                raise ValueError("Oops, the number of rows should be positive odd number")
+            if type(num_columns) != int or num_columns % 2 == 0 or num_columns <= 0:
+                raise ValueError("Oops, the number of columns should be positive odd number")
+            if type(complexity) != float or complexity <= 0 or complexity >= 1:
+                raise ValueError("Oops, the complexity should be more than 0 and less than 1")
+            if type(num_portals) != int or num_portals < 0:
+                raise ValueError("Oops, the number of portals should be non-negative integer")
+            if type(num_doors) != int or num_doors < 0:
+                raise ValueError("Oops, the number of doors should be non-negative integer")
 
         # initialize board
         self.board = [[Maze.__marks['wall'] for _ in range(self.N)] for _ in range(self.M)]
