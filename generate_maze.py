@@ -10,41 +10,43 @@ from matplotlib.colors import ListedColormap, LinearSegmentedColormap
 
 
 class Maze:
-
     __marks = {
         'aisle': 0,
         'solution': 0.4,
+        'key': 0.5,
+        'door': 0.55,
         'portal': 0.6,
         'portal_solution': 0.65,
         'start': 0.8,
         'end': 0.9,
         'wall': 1,
-        'key': 0.4,
-        'door': 0.6
     }
 
-    def __init__(self, mode='easy', num_rows=31, num_columns=41, complexity=0.5, num_portals=0, num_doors=1):
+    def __init__(self, mode='easy', num_rows=31, num_columns=41, complexity=0.5, num_portals=0, has_key=False):
         # set up board size and difficulty
         self.M = num_rows
         self.N = num_columns
         self.complexity = complexity
         self.num_portals = num_portals
-        self.num_doors = num_doors
+        self.has_key = has_key
         if mode == 'easy':
             self.M = 31
             self.N = 41
-            self.complexity = 0.5
-            num_portals = 1
+            self.complexity = 0.6
+            self.num_portals = 0
+            self.has_key = True
         elif mode == 'median':
             self.M = 41
             self.N = 61
             self.complexity = 0.65
-            num_portals = 1
+            self.num_portals = 1
+            self.has_key = False
         elif mode == 'hard':
             self.M = 61
             self.N = 81
             self.complexity = 0.8
-            num_portals = 2
+            self.num_portals = 1
+            self.has_key = True
         else:
             if type(num_rows) != int or num_rows % 2 == 0 or num_rows <= 0:
                 raise ValueError("Oops, the number of rows should be positive odd number")
@@ -54,8 +56,8 @@ class Maze:
                 raise ValueError("Oops, the complexity should be more than 0 and less than 1")
             if type(num_portals) != int or num_portals < 0:
                 raise ValueError("Oops, the number of portals should be non-negative integer")
-            if type(num_doors) != int or num_doors < 0:
-                raise ValueError("Oops, the number of doors should be non-negative integer")
+            if type(has_key) != bool:
+                raise ValueError("Oops, the has_key parameter should be a boolean")
 
         # initialize board
         self.board = [[Maze.__marks['wall'] for _ in range(self.N)] for _ in range(self.M)]
@@ -65,11 +67,12 @@ class Maze:
         self.end_point = None
 
         self.portals = {}
-        self.doors_keys = {}
-        hard_coded_sequence = {1: ['portal'] * num_portals + ['key'] * num_doors + ['door'] * num_doors + ['end'],
-                               2: ['key'] * num_doors + ['door'] * num_doors + ['portal'] * num_portals + ['end'],
-                               3: ['key'] * num_doors + ['portal'] * num_portals + ['door'] * num_doors + ['end']}
-        sequence = hard_coded_sequence[random.randint(1, 3)]
+        self.keys = []
+        sequence = ['portal'] * self.num_portals
+        if self.has_key:
+            sequence += ['key']
+            random.shuffle(sequence)
+        sequence += ['end']
 
         self.generate_board(sequence)
 
@@ -90,7 +93,11 @@ class Maze:
 
         # generate solution according to the sequence
         start_point = self.start_point
+        path_contain_key = False
         for i, item in enumerate(sequence):
+            if item == 'key':
+                path_contain_key = True
+                continue
             max_length = (self.solution_length - len(self.solution)) / (len(sequence) - i)
             end_point = self.generate_path(start_point, is_solution=True, max_length=max_length)
             # add a pair of portals
@@ -107,19 +114,14 @@ class Maze:
                     )
                 self.portals[end_point] = start_point
                 self.portals[start_point] = end_point
-            elif item == 'key':
-                self.board[end_point[0]][end_point[1]] = marks['key']
-                start_point = end_point
-                key_point = start_point
-            elif item == 'door':
-                self.board[end_point[0]][end_point[1]] = marks['door']
-                start_point = end_point
-                self.doors_keys[key_point] = start_point
-                self.doors_keys[start_point] = key_point
-            # add an end point
             elif item == 'end':
                 self.end_point = end_point
-                break
+            if path_contain_key:
+                len_key_to_end = int(max_length // 2)
+                m, n = self.solution[-len_key_to_end]
+                self.board[m][n] = marks['key']
+                self.keys.append((m, n))
+                path_contain_key = False
 
         # mark special items on the board
         self.board[self.start_point[0]][self.start_point[1]] = marks['start']
