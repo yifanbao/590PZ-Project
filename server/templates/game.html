@@ -79,7 +79,7 @@
 <script>
     const columns = parseInt({{ columns }});
     const portals = {{ portals }};
-    let hasKey = false;
+    let hasKey = {{ require_key }} <= 0;
     let steps, curtPosition, prevPositionStyle;
 
     const cells = document.getElementsByClassName('maze-cell');
