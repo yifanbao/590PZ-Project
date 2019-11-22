@@ -22,6 +22,8 @@
                     <div class="maze-cell aisle"></div>
                 {% elif cell == marks['solution'] %}
                     <div class="maze-cell solution"></div>
+                {% elif cell == marks['key'] %}
+                    <div class="maze-cell key"></div>
                 {% elif cell == marks['wall'] %}
                     <div class="maze-cell wall"></div>
                 {% elif cell == marks['start'] %}
@@ -51,6 +53,10 @@
              Destination
         </div>
         <div class="legend-item">
+            <div class="maze-cell key legend-icon"></div>
+             Key
+        </div>
+        <div class="legend-item">
             <div class="maze-cell portal legend-icon"></div>
              Portal
         </div>
@@ -73,6 +79,7 @@
 <script>
     const columns = parseInt({{ columns }});
     const portals = {{ portals }};
+    let hasKey = false;
     let steps, curtPosition, prevPositionStyle;
 
     const cells = document.getElementsByClassName('maze-cell');
@@ -120,6 +127,9 @@
         if (cells[newPosition].classList.contains('wall')) {
             return;
         }
+        if (cells[newPosition].classList.contains('end') && !hasKey) {
+            return;
+        }
         if (portals[newPosition] !== undefined) {
             newPosition = portals[newPosition];
         }
@@ -129,6 +139,9 @@
         steps++;
         setPlayer();
 
+        if (cells[curtPosition].classList.contains('key')) {
+            hasKey = true;
+        }
         if (cells[curtPosition].classList.contains('end')) {
             document.removeEventListener('keydown', movePlayer);
             message.style.display = 'block';

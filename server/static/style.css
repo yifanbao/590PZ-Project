@@ -65,6 +65,10 @@ body {
     background: chocolate;
 }
 
+.key {
+    background: cadetblue;
+}
+
 .portal {
     background: mediumslateblue;
 }
